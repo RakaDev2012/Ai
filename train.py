@@ -31,9 +31,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="data.txt")
     ap.add_argument("--out", default="artifacts/aksaraai-hf")
-    ap.add_argument("--steps", type=int, default=1200)
+    ap.add_argument("--steps", type=int, default=10000)
     ap.add_argument("--batch-size", type=int, default=8)
-    ap.add_argument("--block-size", type=int, default=128)
+    ap.add_argument("--block-size", type=int, default=512)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
@@ -53,9 +53,10 @@ def main():
         vocab_size=tokenizer.vocab_size,
         n_positions=args.block_size,
         n_ctx=args.block_size,
-        n_embd=256,
-        n_layer=6,
-        n_head=8,
+        # ~300M parameters: 19 transformer blocks, width 1152, 18 heads.
+        n_embd=1152,
+        n_layer=19,
+        n_head=18,
         bos_token_id=tokenizer.bos_token_id,
         eos_token_id=tokenizer.eos_token_id,
         pad_token_id=tokenizer.pad_token_id,
