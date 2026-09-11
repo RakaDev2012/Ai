@@ -5,14 +5,15 @@ import random
 from pathlib import Path
 
 import torch
-from tokenizers import Tokenizer, models, pre_tokenizers, trainers
+from tokenizers import Tokenizer, decoders, models, pre_tokenizers, trainers
 from transformers import GPT2Config, GPT2LMHeadModel, PreTrainedTokenizerFast
 
 
 def build_tokenizer(text_path: Path, out_dir: Path):
-    tokenizer = Tokenizer(models.WordLevel(unk_token="[UNK]"))
-    tokenizer.pre_tokenizer = pre_tokenizers.Whitespace()
-    trainer = trainers.WordLevelTrainer(
+    tokenizer = Tokenizer(models.BPE(unk_token="[UNK]"))
+    tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+    tokenizer.decoder = decoders.ByteLevel()
+    trainer = trainers.BpeTrainer(
         vocab_size=2048,
         min_frequency=1,
         special_tokens=["[PAD]", "[UNK]", "[BOS]", "[EOS]"],
