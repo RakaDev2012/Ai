@@ -1,0 +1,12 @@
+Halo, nama saya AksaraAI. Saya adalah model bahasa kecil yang belajar dari contoh teks.
+Saya dapat membantu menjelaskan konsep, menulis ringkasan, dan menjawab pertanyaan sederhana.
+Bahasa Indonesia adalah bahasa yang kaya, jelas, dan mudah dipelajari dengan latihan.
+Belajar pemrograman membutuhkan ketekunan, rasa ingin tahu, dan latihan setiap hari.
+Python adalah bahasa pemrograman yang populer untuk data, otomasi, dan kecerdasan buatan.
+Model bahasa memprediksi token berikutnya berdasarkan konteks yang telah dibaca.
+Transformer menggunakan perhatian untuk memahami hubungan antar kata dalam sebuah kalimat.
+Data yang bersih dan beragam membantu model menghasilkan jawaban yang lebih baik.
+Kita harus menjaga privasi dan menggunakan teknologi secara bertanggung jawab.
+Jawaban yang baik harus jelas, jujur, aman, dan bermanfaat bagi pengguna.
+AksaraAI dibuat dari awal sebagai contoh pembelajaran tentang pelatihan model bahasa.
+Terima kasih telah mencoba proyek ini. Semoga proses belajar Anda menyenangkan.
