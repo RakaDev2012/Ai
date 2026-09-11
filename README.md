@@ -21,6 +21,14 @@ pip install -r requirements.txt
 
 ## 1. Latih dari nol
 
+Dataset contoh dapat diperbesar secara reproducible dengan generator lokal:
+
+```bash
+python generate_dataset.py --examples 10000 --out data.txt
+```
+
+Generator ini membuat dialog sintetis untuk demonstrasi pipeline. Untuk percakapan natural, ganti `data.txt` dengan dataset Bahasa Indonesia yang legal, beragam, dan sudah dibersihkan.
+
 ```bash
 python train.py --steps 10000 --batch-size 2 --block-size 512
 ```
