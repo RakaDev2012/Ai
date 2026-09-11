@@ -43,7 +43,7 @@ def main():
     out_dir.mkdir(parents=True, exist_ok=True)
     tokenizer = build_tokenizer(Path(args.data), out_dir)
     text = Path(args.data).read_text(encoding="utf-8")
-    ids = tokenizer.encode(text, add_special_tokens=True).ids
+    ids = tokenizer.encode(text, add_special_tokens=True)
     if len(ids) < args.block_size + 2:
         ids = (ids * ((args.block_size + 2) // len(ids) + 1))[: args.block_size + 2]
     device = "cuda" if torch.cuda.is_available() else "cpu"
