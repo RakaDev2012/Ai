@@ -15,6 +15,18 @@ if not llama.exists():
 converter = llama / 'convert_hf_to_gguf.py'
 if not converter.exists():
     raise SystemExit('Konverter llama.cpp tidak ditemukan; update clone llama.cpp lalu coba lagi.')
+# llama.cpp only recognizes tokenizer hashes shipped with known models. Our
+# custom ByteLevel BPE has the same runtime semantics as GPT-2, so add a safe
+# fallback for the custom vocabulary before invoking the official converter.
+base_py = llama / 'conversion' / 'base.py'
+base_text = base_py.read_text(encoding='utf-8')
+marker = '        if res is None:\n            logger.warning("\\n")'
+fallback = ('        if res is None:\n'
+            '            # AksaraAI uses standard ByteLevel BPE semantics.\n'
+            '            res = "gpt2"\n\n'
+            '        if res is None:\n            logger.warning("\\n")')
+if marker in base_text and 'AksaraAI uses standard ByteLevel BPE semantics.' not in base_text:
+    base_py.write_text(base_text.replace(marker, fallback, 1), encoding='utf-8')
 base = Path(args.out)
 base.parent.mkdir(parents=True, exist_ok=True)
 f16 = base.with_name(base.name + '-f16.gguf')
