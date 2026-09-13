@@ -4,6 +4,8 @@
 
 `data.txt` berisi dialog sintetis yang dibuat oleh `generate_dataset.py`. `data_3000.txt` dibuat dari 3.000 blok dialog yang dipilih secara deterministik dengan seed 42. Data ini bukan salinan dari sumber internet.
 
+`data_indonlg.txt` berisi **11.929 pasangan teks** yang diimpor dari repositori IndoNLG melalui `import_indonlg.py`. `data_combined.txt` menggabungkan 3.000 dialog lokal dan pasangan IndoNLG tersebut untuk sesi training ulang.
+
 Buat ulang dataset 3.000 dialog dengan:
 
 ```bash
@@ -19,6 +21,7 @@ python prepare_3000.py --source data.txt --out data_3000.txt --count 3000
 | [Indonesian Wikipedia](https://id.wikipedia.org/) | Potongan ensiklopedis beragam | CC BY-SA; atribusi dan ketentuan share-alike harus dipertahankan | API pengambilan bulk tidak selesai dalam sesi ini; tidak diklaim sudah masuk dataset |
 | [Awesome Indonesian LLM Dataset](https://github.com/irfanfadhullah/awesome-indonesian-llm-dataset) | Katalog sumber NLU, NER, sentiment, dan instruction | Lisensi mengikuti dataset masing-masing | Dipakai sebagai katalog, bukan sumber tunggal untuk menyalin data |
 | [Cendol](https://github.com/IndoNLP/cendol) | Referensi instruction/chat Bahasa Indonesia | Proyek dan koleksi memiliki ketentuan penggunaan masing-masing | Dipakai sebagai referensi desain, bukan disalin |
+| [IndoNLG](https://github.com/indobenchmark/indonlg) | Pasangan teks NLG/terjemahan dengan sisi Bahasa Indonesia | Kartu GEM menyatakan MIT; data tetap perlu dipakai sesuai dokumentasi sumber | Diimpor sebagai `data_indonlg.txt` dan digabung ke `data_combined.txt` |
 
 ## Prinsip penggunaan
 
