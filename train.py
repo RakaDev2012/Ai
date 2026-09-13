@@ -35,6 +35,7 @@ def main():
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--block-size", type=int, default=512)
     ap.add_argument("--lr", type=float, default=3e-4)
+    ap.add_argument("--save-every", type=int, default=500)
     ap.add_argument("--seed", type=int, default=42)
     args = ap.parse_args()
 
@@ -78,7 +79,12 @@ def main():
         torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
         optimizer.step(); optimizer.zero_grad(set_to_none=True)
         if step == 1 or step % 100 == 0:
-            print(f"step={step}/{args.steps} loss={loss.item():.4f} ppl={math.exp(min(loss.item(), 20)):.2f}")
+            print(f"step={step}/{args.steps} loss={loss.item():.4f} ppl={math.exp(min(loss.item(), 20)):.2f}", flush=True)
+        if step % args.save_every == 0:
+            checkpoint = out_dir / f"checkpoint-{step}"
+            model.save_pretrained(checkpoint, safe_serialization=True)
+            tokenizer.save_pretrained(checkpoint)
+            print(f"checkpoint saved: {checkpoint}", flush=True)
 
     model.save_pretrained(out_dir, safe_serialization=True)
     tokenizer.save_pretrained(out_dir)
