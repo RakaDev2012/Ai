@@ -31,6 +31,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--data", default="data.txt")
     ap.add_argument("--out", default="artifacts/aksaraai-hf")
+    ap.add_argument("--init-model", default=None, help="Checkpoint Hugging Face untuk dilanjutkan")
     ap.add_argument("--steps", type=int, default=10000)
     ap.add_argument("--batch-size", type=int, default=8)
     ap.add_argument("--block-size", type=int, default=512)
@@ -43,7 +44,11 @@ def main():
     torch.manual_seed(args.seed)
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    tokenizer = build_tokenizer(Path(args.data), out_dir)
+    if args.init_model:
+        tokenizer = PreTrainedTokenizerFast.from_pretrained(args.init_model)
+        tokenizer.save_pretrained(out_dir)
+    else:
+        tokenizer = build_tokenizer(Path(args.data), out_dir)
     text = Path(args.data).read_text(encoding="utf-8")
     ids = tokenizer.encode(text, add_special_tokens=True)
     if len(ids) < args.block_size + 2:
@@ -62,7 +67,7 @@ def main():
         eos_token_id=tokenizer.eos_token_id,
         pad_token_id=tokenizer.pad_token_id,
     )
-    model = GPT2LMHeadModel(config).to(device)
+    model = (GPT2LMHeadModel.from_pretrained(args.init_model) if args.init_model else GPT2LMHeadModel(config)).to(device)
     model.train()
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=0.1)
 
