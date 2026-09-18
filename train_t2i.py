@@ -22,7 +22,7 @@ class FineT2I(IterableDataset):
             except Exception: continue
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--subset',default='synthetic_enhanced_prompt_square_resolution'); ap.add_argument('--out',default='artifacts/fine-t2i-dit'); ap.add_argument('--steps',type=int,default=10000); ap.add_argument('--batch-size',type=int,default=2); ap.add_argument('--image-size',type=int,default=256); ap.add_argument('--max-samples',type=int); ap.add_argument('--lr',type=float,default=1e-4); ap.add_argument('--grad-accum',type=int,default=1); ap.add_argument('--vae',default='stabilityai/sd-vae-ft-mse'); ap.add_argument('--text-model',default='openai/clip-vit-large-patch14'); ap.add_argument('--seed',type=int,default=42); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument('--subset',default='synthetic_enhanced_prompt_square_resolution'); ap.add_argument('--out',default='artifacts/rkimage1'); ap.add_argument('--steps',type=int,default=10000); ap.add_argument('--batch-size',type=int,default=2); ap.add_argument('--image-size',type=int,default=256); ap.add_argument('--max-samples',type=int); ap.add_argument('--lr',type=float,default=1e-4); ap.add_argument('--grad-accum',type=int,default=1); ap.add_argument('--vae',default='stabilityai/sd-vae-ft-mse'); ap.add_argument('--text-model',default='openai/clip-vit-large-patch14'); ap.add_argument('--seed',type=int,default=42); args=ap.parse_args()
     random.seed(args.seed); torch.manual_seed(args.seed); out=Path(args.out); out.mkdir(parents=True,exist_ok=True); device='cuda' if torch.cuda.is_available() else 'cpu'
     tok=CLIPTokenizer.from_pretrained(args.text_model); text=CLIPTextModel.from_pretrained(args.text_model).to(device).eval(); vae=AutoencoderKL.from_pretrained(args.vae).to(device).eval()
     for m in (text,vae):
@@ -40,5 +40,5 @@ def main():
         if step%args.grad_accum==0: torch.nn.utils.clip_grad_norm_(model.parameters(),1); opt.step(); opt.zero_grad(set_to_none=True)
         if step==1 or step%50==0: print(f'step={step}/{args.steps} loss={loss.item()*args.grad_accum:.5f}',flush=True)
         if step%1000==0: torch.save({'model':model.state_dict(),'config':cfg.__dict__,'step':step},out/f'checkpoint-{step}.pt')
-    torch.save({'model':model.state_dict(),'config':cfg.__dict__,'step':args.steps},out/'model.pt'); (out/'training_info.json').write_text(json.dumps({'dataset':'ma-xu/fine-t2i','subset':args.subset,'steps':args.steps,'parameters':count_parameters(model),'architecture':'TinyDiT latent diffusion transformer'},indent=2)); print('saved',out)
+    torch.save({'model':model.state_dict(),'config':cfg.__dict__,'step':args.steps,'model_name':'Rkimage 1'},out/'model.pt'); (out/'training_info.json').write_text(json.dumps({'model_name':'Rkimage 1','dataset':'ma-xu/fine-t2i','subset':args.subset,'steps':args.steps,'parameters':count_parameters(model),'architecture':'TinyDiT latent diffusion transformer'},indent=2)); print('saved',out)
 if __name__=='__main__': main()

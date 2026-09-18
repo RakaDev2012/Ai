@@ -1,6 +1,6 @@
-# FineT2I-TinyDiT — Text-to-Image sekitar 300M ke GGUF
+# Rkimage 1 — Text-to-Image sekitar 300M ke GGUF
 
-Proyek ini adalah implementasi **text-to-image latent diffusion transformer** yang dilatih dari awal pada pasangan gambar-teks [Fine-T2I](https://huggingface.co/datasets/ma-xu/fine-t2i). Dataset tersebut berformat WebDataset dan sangat besar (sekitar 2 TB), sehingga loader menggunakan **streaming** dan tidak mengunduh seluruh dataset.
+**Rkimage 1** adalah implementasi **text-to-image latent diffusion transformer** yang dilatih dari awal pada pasangan gambar-teks [Fine-T2I](https://huggingface.co/datasets/ma-xu/fine-t2i). Dataset tersebut berformat WebDataset dan sangat besar (sekitar 2 TB), sehingga loader menggunakan **streaming** dan tidak mengunduh seluruh dataset.
 
 > **Penting:** GGUF di proyek ini adalah wadah tensor untuk arsitektur `t2i-diffusion` kustom. Ia bukan model bahasa GGUF dan tidak dapat dijalankan langsung oleh `llama.cpp`. Inferensi dilakukan oleh `sample_t2i.py`, yang memuat tensor GGUF/checkpoint bersama VAE dan CLIP text encoder.
 
@@ -25,7 +25,7 @@ Contoh berikut memakai subset prompt enhanced berbentuk square. Pilih subset lai
 ```bash
 python train_t2i.py \
   --subset synthetic_enhanced_prompt_square_resolution \
-  --out artifacts/fine-t2i-dit \
+  --out artifacts/rkimage1 \
   --steps 10000 \
   --batch-size 2 \
   --image-size 256 \
@@ -44,7 +44,7 @@ Training memerlukan akses internet ke Hugging Face dan pertama kali akan mengund
 
 ```bash
 python sample_t2i.py \
-  --model artifacts/fine-t2i-dit/model.pt \
+  --model artifacts/rkimage1/model.pt \
   --prompt "a cinematic photograph of a red bicycle beside a quiet lake at sunrise" \
   --out sample.png \
   --steps 30
@@ -54,15 +54,15 @@ python sample_t2i.py \
 
 ```bash
 python convert_t2i_gguf.py \
-  --model artifacts/fine-t2i-dit/model.pt \
-  --out artifacts/fine-t2i-tinydit-f16.gguf \
+  --model artifacts/rkimage1/model.pt \
+  --out artifacts/Rkimage-1-f16.gguf \
   --quant f16
 ```
 
 Perintah ringkas:
 
 ```bash
-python convert_t2i_gguf.py --model artifacts/fine-t2i-dit/model.pt --out artifacts/fine-t2i-tinydit-f16.gguf --quant f16
+python convert_t2i_gguf.py --model artifacts/rkimage1/model.pt --out artifacts/Rkimage-1-f16.gguf --quant f16
 ```
 
 Jika ingin mengurangi ukuran bobot, gunakan `--quant q8_0`. File GGUF menyimpan metadata arsitektur, konfigurasi, asal dataset, jumlah parameter, serta seluruh tensor TinyDiT. VAE dan CLIP tetap didownload/dimuat terpisah saat sampling.

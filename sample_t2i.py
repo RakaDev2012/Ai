@@ -7,7 +7,7 @@ from diffusers import AutoencoderKL
 from model import TinyDiT, DiTConfig
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument('--model',default='artifacts/fine-t2i-dit/model.pt'); ap.add_argument('--prompt',required=True); ap.add_argument('--out',default='sample.png'); ap.add_argument('--steps',type=int,default=30); ap.add_argument('--seed',type=int,default=42); ap.add_argument('--size',type=int,default=256); ap.add_argument('--vae',default='stabilityai/sd-vae-ft-mse'); ap.add_argument('--text-model',default='openai/clip-vit-large-patch14'); args=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument('--model',default='artifacts/rkimage1/model.pt'); ap.add_argument('--prompt',required=True); ap.add_argument('--out',default='rkimage1-sample.png'); ap.add_argument('--steps',type=int,default=30); ap.add_argument('--seed',type=int,default=42); ap.add_argument('--size',type=int,default=256); ap.add_argument('--vae',default='stabilityai/sd-vae-ft-mse'); ap.add_argument('--text-model',default='openai/clip-vit-large-patch14'); args=ap.parse_args()
     device='cuda' if torch.cuda.is_available() else 'cpu'; ck=torch.load(args.model,map_location=device); cfg=DiTConfig(**ck['config']); model=TinyDiT(cfg).to(device); model.load_state_dict(ck['model']); model.eval()
     tok=CLIPTokenizer.from_pretrained(args.text_model); enc=CLIPTextModel.from_pretrained(args.text_model).to(device).eval(); vae=AutoencoderKL.from_pretrained(args.vae).to(device).eval()
     ids=tok([args.prompt],padding='max_length',truncation=True,max_length=77,return_tensors='pt').to(device)
