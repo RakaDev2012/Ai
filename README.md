@@ -1,17 +1,16 @@
-# AksaraAI — Model Bahasa Kecil dari Nol ke GGUF
+# FineT2I-TinyDiT — Text-to-Image sekitar 300M ke GGUF
 
-AksaraAI adalah proyek eksperimen **model bahasa yang dilatih dari nol**, tanpa bobot model pralatih. Proyek ini menggunakan transformer bergaya GPT-2, tokenizer BPE lokal, dan dapat dikonversi ke format `.gguf` untuk dijalankan dengan llama.cpp. Konfigurasi default sekarang menargetkan sekitar **300 juta parameter**.
+Proyek ini adalah implementasi **text-to-image latent diffusion transformer** yang dilatih dari awal pada pasangan gambar-teks [Fine-T2I](https://huggingface.co/datasets/ma-xu/fine-t2i). Dataset tersebut berformat WebDataset dan sangat besar (sekitar 2 TB), sehingga loader menggunakan **streaming** dan tidak mengunduh seluruh dataset.
 
-> Model contoh yang dihasilkan dari korpus mini hanya untuk demonstrasi pipeline. Untuk kemampuan percakapan yang baik, gunakan korpus Bahasa Indonesia yang lebih besar dan legal.
+> **Penting:** GGUF di proyek ini adalah wadah tensor untuk arsitektur `t2i-diffusion` kustom. Ia bukan model bahasa GGUF dan tidak dapat dijalankan langsung oleh `llama.cpp`. Inferensi dilakukan oleh `sample_t2i.py`, yang memuat tensor GGUF/checkpoint bersama VAE dan CLIP text encoder.
 
-## Kebutuhan
+## Arsitektur
 
-- Python 3.10+
-- PyTorch
-- `transformers`, `tokenizers`, `safetensors`
-- `git`, untuk mengambil `llama.cpp` saat konversi
+Model yang dilatih adalah DiT kecil pada ruang laten: 20 transformer blocks, hidden size 1024, 16 attention heads, patch size 2, dan latent 32×32 untuk gambar 256×256. VAE `stabilityai/sd-vae-ft-mse` dan CLIP `openai/clip-vit-large-patch14` dibekukan; hanya TinyDiT yang dilatih. Jumlah parameter trainable diperiksa saat startup dan dicatat di `training_info.json`.
 
-Instal dependensi:
+VAE dan CLIP adalah komponen runtime terpisah. Karena itu, ukuran “sekitar 300M” merujuk pada bobot TinyDiT, bukan total seluruh pipeline. Model generatif dari nol pada skala ini membutuhkan GPU dan data/training yang besar; konfigurasi default dimaksudkan sebagai baseline reproducible, bukan jaminan kualitas setara model komersial.
+
+## Instalasi
 
 ```bash
 python -m venv .venv
@@ -19,51 +18,69 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-## 1. Latih dari nol
+## Training streaming
 
-Dataset contoh dapat diperbesar secara reproducible dengan generator lokal:
-
-```bash
-python generate_dataset.py --examples 10000 --out data.txt
-```
-
-Generator ini membuat dialog sintetis untuk demonstrasi pipeline. Untuk percakapan natural, ganti `data.txt` dengan dataset Bahasa Indonesia yang legal, beragam, dan sudah dibersihkan.
+Contoh berikut memakai subset prompt enhanced berbentuk square. Pilih subset lain bila diperlukan: `synthetic_enhanced_prompt_random_resolution`, `synthetic_original_prompt_square_resolution`, `synthetic_original_prompt_random_resolution`, atau `curated`.
 
 ```bash
-python train.py --steps 10000 --batch-size 2 --block-size 512
+python train_t2i.py \
+  --subset synthetic_enhanced_prompt_square_resolution \
+  --out artifacts/fine-t2i-dit \
+  --steps 10000 \
+  --batch-size 2 \
+  --image-size 256 \
+  --grad-accum 8
 ```
 
-Semua parameter model dibuat baru secara acak. Tidak ada `from_pretrained()` dan tidak ada unduhan bobot.
-
-Output berada di `artifacts/aksaraai-hf/`.
-
-Uji generasi langsung dari checkpoint:
+Untuk smoke test tanpa memproses banyak contoh:
 
 ```bash
-python generate.py --prompt "Halo, nama saya" --max-new-tokens 80
+python train_t2i.py --steps 2 --batch-size 1 --max-samples 8 --image-size 256
 ```
 
-## 2. Konversi ke GGUF
+Training memerlukan akses internet ke Hugging Face dan pertama kali akan mengunduh VAE/CLIP. Hindari mode non-streaming karena dataset penuh berukuran sekitar 2 TB.
+
+## Sampling
 
 ```bash
-python convert_to_gguf.py --quant q8_0
+python sample_t2i.py \
+  --model artifacts/fine-t2i-dit/model.pt \
+  --prompt "a cinematic photograph of a red bicycle beside a quiet lake at sunrise" \
+  --out sample.png \
+  --steps 30
 ```
 
-Hasilnya berada di `artifacts/aksaraai-q8_0.gguf`. Untuk tanpa kuantisasi gunakan `--quant f16`.
-
-## 3. Jalankan dengan llama.cpp
+## Ekspor ke GGUF
 
 ```bash
-./llama.cpp/build/bin/llama-cli -m artifacts/aksaraai-q8_0.gguf -p "Halo, nama saya" -n 80 --temp 0.8
+python convert_t2i_gguf.py \
+  --model artifacts/fine-t2i-dit/model.pt \
+  --out artifacts/fine-t2i-tinydit-f16.gguf \
+  --quant f16
 ```
 
-## Catatan penting
+Perintah ringkas:
 
-- Model 300M membutuhkan RAM/VRAM dan waktu training jauh lebih besar daripada model demo sebelumnya.
-- Kualitas model ditentukan terutama oleh ukuran dan kebersihan data.
-- Jangan memasukkan data pribadi, rahasia, atau materi berhak cipta tanpa izin.
-- GGUF adalah format distribusi/inferensi; pelatihan tetap berlangsung pada checkpoint PyTorch.
+```bash
+python convert_t2i_gguf.py --model artifacts/fine-t2i-dit/model.pt --out artifacts/fine-t2i-tinydit-f16.gguf --quant f16
+```
 
-## Lisensi
+Jika ingin mengurangi ukuran bobot, gunakan `--quant q8_0`. File GGUF menyimpan metadata arsitektur, konfigurasi, asal dataset, jumlah parameter, serta seluruh tensor TinyDiT. VAE dan CLIP tetap didownload/dimuat terpisah saat sampling.
 
-Kode dan korpus contoh dirilis sebagai MIT.
+## Dataset dan lisensi
+
+Fine-T2I memiliki lisensi Apache-2.0 menurut kartu datasetnya dan menyediakan file `jpg`, `txt`, serta `json`. Sertakan atribusi dataset dan sitasi paper ketika mendistribusikan model turunan. Jangan mengklaim bahwa model ini menggunakan seluruh 6 juta pasangan bila training hanya dijalankan untuk sejumlah langkah atau satu subset.
+
+Sitasi:
+
+```bibtex
+@misc{ma2026finet2i,
+  title={Fine-T2I: An Open, Large-Scale, and Diverse Dataset for High-Quality T2I Fine-Tuning},
+  author={Xu Ma and Yitian Zhang and Qihua Dong and Yun Fu},
+  year={2026}, eprint={2602.09439}, archivePrefix={arXiv}
+}
+```
+
+## Lisensi kode
+
+Kode proyek ini mengikuti lisensi MIT dari repositori asal, sedangkan kewajiban distribusi data/model turunan harus mengikuti lisensi dataset dan komponen runtime yang digunakan.

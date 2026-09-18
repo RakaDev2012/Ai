@@ -1,4 +1,10 @@
 torch>=2.2
 transformers>=4.45
-tokenizers>=0.20
+diffusers>=0.30
+datasets>=3.0
 safetensors>=0.4
+Pillow>=10.0
+tqdm>=4.66
+numpy>=1.26
+torchvision>=0.17
+gguf>=0.10
