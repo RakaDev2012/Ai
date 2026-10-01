@@ -10,7 +10,7 @@ var pitch := -0.08
 var selected := 0
 var health := 20
 var hunger := 20
-var inventory := ["moss", "slate", "emberwood", "glowstone", "glowstone"]
+var inventory := ["moss", "slate", "emberwood", "glowstone", "sand", "snow", "brick", "glass", "obsidian", "gold"]
 var left_item: MeshInstance3D
 var right_item: MeshInstance3D
 var left_light: OmniLight3D
@@ -102,7 +102,8 @@ func _make_item(color: Color, offset: Vector3) -> MeshInstance3D:
     return item
 
 func _refresh_item_colors() -> void:
-    var palette := {"moss": Color("#75b95f"), "slate": Color("#8e9bab"), "emberwood": Color("#b47a4e"), "glowstone": Color("#e7c45c")}
+    var palette: Dictionary = {}
+    for id in VoxelWorld.BLOCKS: palette[id] = VoxelWorld.BLOCKS[id].color
     var left_id: String = inventory[selected]
     var right_id: String = inventory[(selected + 1) % inventory.size()]
     (left_item.mesh as BoxMesh).material.albedo_color = palette[left_id]
