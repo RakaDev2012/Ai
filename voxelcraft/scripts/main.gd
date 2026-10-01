@@ -2,32 +2,66 @@ extends Node3D
 
 var hud: CanvasLayer
 var status_label: Label
+var survival_label: Label
+var command_line: LineEdit
+var world: VoxelWorld
+var player: CharacterBody3D
+var sun: DirectionalLight3D
+var elapsed := 0.0
 
 func _ready() -> void:
+    world = $World
+    player = $Player
+    _build_lighting()
     _build_hud()
-    var player := $Player
-    player.world = $World
+    player.world = world
     player.hud = hud
 
-func _process(_delta: float) -> void:
+func _build_lighting() -> void:
+    sun = DirectionalLight3D.new()
+    sun.name = "SunCycle"
+    sun.rotation_degrees = Vector3(-48, -25, 0)
+    sun.light_energy = 1.1
+    sun.shadow_enabled = true
+    add_child(sun)
+    var environment := WorldEnvironment.new()
+    var env := Environment.new()
+    env.background_mode = Environment.BG_COLOR
+    env.background_color = Color("#77a9cf")
+    env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+    env.ambient_light_color = Color("#9ab7d1")
+    env.ambient_light_energy = 0.55
+    env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+    environment.environment = env
+    add_child(environment)
+
+func _process(delta: float) -> void:
+    elapsed += delta
+    world.advance_time(delta)
+    var phase := world.time_of_day * TAU
+    sun.rotation_degrees = Vector3(-35.0 + sin(phase) * 38.0, phase * 57.3 - 90.0, 0)
+    sun.light_energy = 0.18 + max(0.0, sin(phase)) * 1.0
     if is_instance_valid(status_label):
-        var fps := Engine.get_frames_per_second()
-        status_label.text = "LUMEN FRONTIER  •  %d FPS  •  dynamic light ON" % fps
+        status_label.text = "LUMEN FRONTIER  •  %d FPS  •  %s" % [Engine.get_frames_per_second(), "daylight" if sun.light_energy > 0.55 else "night"]
 
 func _build_hud() -> void:
-    var top := ColorRect.new()
-    top.color = Color(0.02, 0.04, 0.075, 0.78)
-    top.position = Vector2(0, 0)
-    top.size = Vector2(1280, 42)
     hud = $HUD
+    var top := ColorRect.new()
+    top.color = Color(0.02, 0.04, 0.075, 0.82)
+    top.size = Vector2(1280, 48)
     hud.add_child(top)
     status_label = Label.new()
-    status_label.position = Vector2(20, 11)
+    status_label.position = Vector2(20, 13)
     status_label.add_theme_color_override("font_color", Color("#b8d7ff"))
     status_label.add_theme_font_size_override("font_size", 14)
     top.add_child(status_label)
+    survival_label = Label.new()
+    survival_label.position = Vector2(1020, 13)
+    survival_label.add_theme_color_override("font_color", Color("#ffd68a"))
+    survival_label.add_theme_font_size_override("font_size", 14)
+    top.add_child(survival_label)
     var help := Label.new()
-    help.text = "WASD bergerak  •  Space lompat  •  LMB tangan kiri  •  RMB tangan kanan  •  E inventory"
+    help.text = "WASD bergerak  •  Space lompat  •  LMB tambang/gunakan kiri  •  RMB pasang/gunakan kanan  •  / command"
     help.position = Vector2(20, 650)
     help.add_theme_color_override("font_color", Color(0.78, 0.84, 0.93, 0.9))
     help.add_theme_font_size_override("font_size", 15)
@@ -49,3 +83,50 @@ func _build_hud() -> void:
         n.position = Vector2(12, 8)
         n.add_theme_color_override("font_color", Color("#eaf4ff"))
         slot.add_child(n)
+    command_line = LineEdit.new()
+    command_line.position = Vector2(280, 545)
+    command_line.size = Vector2(720, 38)
+    command_line.placeholder_text = "Ketik command: /help, /give, /set, /tp, /time"
+    command_line.visible = false
+    command_line.add_theme_font_size_override("font_size", 17)
+    command_line.text_submitted.connect(_on_command_submitted)
+    hud.add_child(command_line)
+
+func _unhandled_input(event: InputEvent) -> void:
+    if event is InputEventKey and event.pressed and event.keycode == KEY_SLASH and not command_line.visible:
+        command_line.visible = true
+        command_line.text = "/"
+        command_line.grab_focus()
+        Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+func update_player_status(health: int, hunger: int, item: String, slot: int) -> void:
+    if is_instance_valid(survival_label): survival_label.text = "HP %d/20  HUNGER %d/20  •  %s [%d]" % [health, hunger, item, slot + 1]
+
+func _on_command_submitted(raw: String) -> void:
+    command_line.visible = false
+    Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+    var text := raw.strip_edges().trim_prefix("/")
+    var parts := text.split(" ", false)
+    if parts.is_empty(): return
+    var result := "Command tidak dikenal. /help"
+    match parts[0].to_lower():
+        "help": result = "Command: /give <block> /set <x> <y> <z> <block> /tp <x> <y> <z> /time <day|night>"
+        "give":
+            if parts.size() > 1 and VoxelWorld.BLOCKS.has(parts[1]):
+                player.inventory[player.selected] = parts[1]
+                player._refresh_item_colors()
+                result = "Diberi %s" % parts[1]
+            else: result = "Block: moss, slate, emberwood, glowstone"
+        "set":
+            if parts.size() >= 5:
+                var cell := Vector3i(int(parts[1]), int(parts[2]), int(parts[3]))
+                result = "Block dipasang" if world.set_block(cell, parts[4]) else "Block tidak valid"
+        "tp":
+            if parts.size() >= 4:
+                player.position = Vector3(float(parts[1]), float(parts[2]), float(parts[3]))
+                result = "Teleport berhasil"
+        "time":
+            if parts.size() > 1 and parts[1] == "night": world.time_of_day = 0.75
+            elif parts.size() > 1 and parts[1] == "day": world.time_of_day = 0.25
+            result = "Waktu diubah"
+    player._show_action(result)
