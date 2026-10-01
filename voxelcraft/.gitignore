@@ -1,5 +1,6 @@
 .godot/
-exported/
-*.apk
+exported/*
+!exported/VoxelCraft-debug.apk
 *.aab
 *.keystore
+*.idsig

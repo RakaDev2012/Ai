@@ -20,7 +20,7 @@ Tekan `/` untuk membuka command console. Contoh: `/give glowstone`, `/set 2 4 2 
 
 ## Android
 
-Preset ekspor Android disiapkan di `export_presets.cfg`. Build APK membutuhkan Android SDK/NDK, OpenJDK, dan template ekspor Godot di mesin build. Source di repositori siap diekspor setelah dependency Android tersedia.
+Preset ekspor Android disiapkan di `export_presets.cfg`. APK debug hasil ekspor tersedia di `exported/VoxelCraft-debug.apk`; APK ini ditandatangani dengan debug keystore untuk pengujian lokal, bukan untuk rilis Play Store.
 
 ## Lisensi
 
