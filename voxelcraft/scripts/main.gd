@@ -10,6 +10,9 @@ var sun: DirectionalLight3D
 var elapsed := 0.0
 var autosave_elapsed := 0.0
 const SAVE_PATH := "user://lumen_frontier_save.json"
+var spawn_point := Vector3(0, 5, 5)
+var difficulty := "normal"
+var keep_inventory := true
 
 func _ready() -> void:
     world = $World
@@ -135,13 +138,13 @@ func _on_command_submitted(raw: String) -> void:
     if parts.is_empty(): return
     var result := "Command tidak dikenal. /help"
     match parts[0].to_lower():
-        "help": result = "Command: /give /set /setblock /fill /tp /time /weather /craft /save /load"
+        "help": result = "Command: /give /setblock /fill /clone /tp /spawnpoint /kill /clear /locate /time /weather /difficulty /gamerule /effect /craft /save /load"
         "give":
             if parts.size() > 1 and VoxelWorld.BLOCKS.has(parts[1]):
                 player.inventory[player.selected] = parts[1]
                 player._refresh_item_colors()
                 result = "Diberi %s" % parts[1]
-            else: result = "Block: moss slate emberwood glowstone sand snow obsidian brick glass water leaves copper gold clay bedrock"
+            else: result = "Gunakan /give <block>. 35 block tersedia di registry."
         "set":
             if parts.size() >= 5:
                 var cell := Vector3i(int(parts[1]), int(parts[2]), int(parts[3]))
@@ -156,16 +159,44 @@ func _on_command_submitted(raw: String) -> void:
                 var b := Vector3i(int(parts[4]), int(parts[5]), int(parts[6]))
                 var count := world.fill_region(a, b, parts[7])
                 result = "%d block diisi" % count if count > 0 else "Block tidak valid"
+        "clone":
+            if parts.size() >= 10:
+                var a := Vector3i(int(parts[1]), int(parts[2]), int(parts[3]))
+                var b := Vector3i(int(parts[4]), int(parts[5]), int(parts[6]))
+                var dest := Vector3i(int(parts[7]), int(parts[8]), int(parts[9]))
+                result = "%d block disalin" % world.clone_region(a, b, dest)
         "tp":
             if parts.size() >= 4:
                 player.position = Vector3(float(parts[1]), float(parts[2]), float(parts[3]))
                 result = "Teleport berhasil"
+        "spawnpoint":
+            spawn_point = player.position
+            result = "Spawn point ditetapkan"
+        "kill":
+            player.health = 0
+            player.position = spawn_point
+            player.health = 20
+            result = "Pemain respawn di spawn point"
+        "clear":
+            player.inventory[player.selected] = "moss"
+            player._refresh_item_colors()
+            result = "Slot aktif dikosongkan"
+        "locate":
+            result = "Posisi: %d %d %d" % [int(player.position.x), int(player.position.y), int(player.position.z)]
         "time":
             if parts.size() > 1 and parts[1] == "night": world.time_of_day = 0.75
             elif parts.size() > 1 and parts[1] == "day": world.time_of_day = 0.25
             result = "Waktu diubah"
         "weather":
             result = "Cuaca cerah" if parts.size() < 2 or parts[1] == "clear" else "Cuaca %s disiapkan" % parts[1]
+        "difficulty":
+            if parts.size() > 1 and parts[1] in ["peaceful", "easy", "normal", "hard"]: difficulty = parts[1]
+            result = "Difficulty: %s" % difficulty
+        "gamerule":
+            if parts.size() > 2 and parts[1] == "keepinventory": keep_inventory = parts[2].to_lower() == "true"
+            result = "keepinventory=%s" % keep_inventory
+        "effect":
+            result = "Effect %s diterapkan selama %s detik" % [parts[1], parts[2] if parts.size() > 2 else "30"] if parts.size() > 1 else "Format: /effect <nama> <detik>"
         "craft":
             if parts.size() > 1 and parts[1] == "glowstone" and player.inventory.has("emberwood") and player.inventory.has("slate"):
                 player.inventory[player.selected] = "glowstone"

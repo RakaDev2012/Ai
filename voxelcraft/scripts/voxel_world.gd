@@ -17,7 +17,27 @@ const BLOCKS := {
     "copper": {"type": 11, "color": Color("#c47d54"), "collides": true},
     "gold": {"type": 12, "color": Color("#f0c84e"), "collides": true},
     "clay": {"type": 13, "color": Color("#a88c85"), "collides": true},
-    "bedrock": {"type": 14, "color": Color("#25262d"), "collides": true}
+    "bedrock": {"type": 14, "color": Color("#25262d"), "collides": true},
+    "dirt": {"type": 15, "color": Color("#765139"), "collides": true},
+    "grass": {"type": 16, "color": Color("#5f9f4f"), "collides": true},
+    "gravel": {"type": 17, "color": Color("#777777"), "collides": true},
+    "stone": {"type": 18, "color": Color("#777b83"), "collides": true},
+    "cobblestone": {"type": 19, "color": Color("#59616a"), "collides": true},
+    "oak_log": {"type": 20, "color": Color("#8e623e"), "collides": true},
+    "birch_log": {"type": 21, "color": Color("#d6c39b"), "collides": true},
+    "planks": {"type": 22, "color": Color("#c28b57"), "collides": true},
+    "quartz": {"type": 23, "color": Color("#e8e1d7"), "collides": true},
+    "netherrack": {"type": 24, "color": Color("#7f393b"), "collides": true},
+    "endstone": {"type": 25, "color": Color("#d8d47b"), "collides": true},
+    "amethyst": {"type": 26, "color": Color("#a56bd5"), "collides": true},
+    "prismarine": {"type": 27, "color": Color("#61a99b"), "collides": true},
+    "sea_lantern": {"type": 28, "color": Color("#a9e6d4"), "collides": true},
+    "torch": {"type": 29, "color": Color("#ff9c45"), "collides": false},
+    "lantern": {"type": 30, "color": Color("#ffc45a"), "collides": false},
+    "tnt": {"type": 31, "color": Color("#cf4a48"), "collides": true},
+    "iron": {"type": 32, "color": Color("#c9d0d5"), "collides": true},
+    "diamond": {"type": 33, "color": Color("#50d6df"), "collides": true},
+    "emerald": {"type": 34, "color": Color("#42c878"), "collides": true}
 }
 const SAVE_PATH := "user://lumen_frontier_world.json"
 var atlas: Texture2D
@@ -48,7 +68,7 @@ func _make_materials() -> void:
         mat.albedo_texture = atlas
         mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
         mat.roughness = 0.92
-        if id == "glowstone" or id == "gold":
+        if id == "glowstone" or id == "gold" or id == "sea_lantern" or id == "lantern" or id == "diamond" or id == "emerald":
             mat.emission_enabled = true
             mat.emission = BLOCKS[id].color
             mat.emission_energy_multiplier = 1.25
@@ -102,6 +122,19 @@ func fill_region(a: Vector3i, b: Vector3i, id: String) -> int:
                 count += 1
     rebuild()
     return count
+
+func clone_region(a: Vector3i, b: Vector3i, destination: Vector3i) -> int:
+    var min_v := Vector3i(min(a.x, b.x), min(a.y, b.y), min(a.z, b.z))
+    var max_v := Vector3i(max(a.x, b.x), max(a.y, b.y), max(a.z, b.z))
+    var copied: Array = []
+    for x in range(min_v.x, max_v.x + 1):
+        for y in range(min_v.y, max_v.y + 1):
+            for z in range(min_v.z, max_v.z + 1):
+                var source := Vector3i(x, y, z)
+                if grid.has(source): copied.append({"offset": source - min_v, "id": grid[source]})
+    for item in copied: grid[destination + item.offset] = item.id
+    rebuild()
+    return copied.size()
 
 func rebuild() -> void:
     for child in visual_root.get_children(): child.queue_free()

@@ -4,7 +4,7 @@ Prototype voxel sandbox Android-ready yang **orisinal** dan tidak memakai kode, 
 
 - Dunia voxel prosedural kecil dengan terrain berlapis dan instancing untuk mengurangi draw call.
 - Tekstur SVG buatan sendiri: moss, slate, dan emberwood, dengan material warna orisinal untuk registry block.
-- Registry block orisinal: moss, slate, emberwood, glowstone, sand, snow, obsidian, brick, glass, water, leaves, copper, gold, clay, dan bedrock.
+- Registry 35 block/material orisinal: moss, slate, emberwood, glowstone, sand, snow, obsidian, brick, glass, water, leaves, copper, gold, clay, bedrock, dirt, grass, gravel, stone, cobblestone, oak_log, birch_log, planks, quartz, netherrack, endstone, amethyst, prismarine, sea_lantern, torch, lantern, tnt, iron, diamond, dan emerald.
 - Mining dan placement block berbasis raycast, inventory lima slot, health, hunger, fall damage, dan siklus siang/malam.
 - Tangan kanan dan tangan kiri yang dapat memegang semua item; klik kiri menambang/menggunakan tangan kiri, klik kanan memasang/menggunakan tangan kanan.
 - Dynamic light dari lampu yang dibawa pemain, dengan shadow opsional.
@@ -18,7 +18,7 @@ Prototype voxel sandbox Android-ready yang **orisinal** dan tidak memakai kode, 
 
 Buka folder ini di Godot 4.3+ lalu jalankan scene utama. Keyboard: WASD, Space, E, klik kiri/kanan. Tombol angka memilih slot hotbar.
 
-Tekan `/` untuk membuka command console. Contoh: `/give glowstone`, `/setblock 2 4 2 moss`, `/fill 0 3 0 3 3 3 brick`, `/tp 0 8 0`, `/time night`, `/weather clear`, `/craft glowstone`, `/save`, atau `/load`.
+Tekan `/` untuk membuka command console. Command world-management mencakup `/give`, `/setblock`, `/fill`, `/clone`, `/tp`, `/spawnpoint`, `/kill`, `/clear`, `/locate`, `/time`, `/weather`, `/difficulty`, `/gamerule`, `/effect`, `/craft`, `/save`, dan `/load`.
 
 ## Android
 
