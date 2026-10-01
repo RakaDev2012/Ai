@@ -14,6 +14,7 @@ var grid: Dictionary = {}
 var visual_root: Node3D
 var collision_root: Node3D
 var time_of_day := 0.35
+const SAVE_PATH := "user://lumen_frontier_world.json"
 
 func _ready() -> void:
     atlas = load("res://assets/terrain.svg")
@@ -116,3 +117,28 @@ func _build_collisions() -> void:
 
 func advance_time(delta: float) -> void:
     time_of_day = fmod(time_of_day + delta * 0.006, 1.0)
+
+func save_world(path: String = SAVE_PATH) -> bool:
+    var blocks: Array = []
+    for cell in grid:
+        blocks.append({"x": cell.x, "y": cell.y, "z": cell.z, "id": grid[cell]})
+    var file := FileAccess.open(path, FileAccess.WRITE)
+    if not file: return false
+    file.store_string(JSON.stringify({"version": 1, "time": time_of_day, "blocks": blocks}))
+    file.close()
+    return true
+
+func load_world(path: String = SAVE_PATH) -> bool:
+    if not FileAccess.file_exists(path): return false
+    var file := FileAccess.open(path, FileAccess.READ)
+    if not file: return false
+    var parsed = JSON.parse_string(file.get_as_text())
+    file.close()
+    if not parsed is Dictionary or not parsed.has("blocks"): return false
+    grid.clear()
+    for entry in parsed.blocks:
+        if entry is Dictionary and BLOCKS.has(str(entry.id)):
+            grid[Vector3i(int(entry.x), int(entry.y), int(entry.z))] = str(entry.id)
+    time_of_day = float(parsed.get("time", 0.35))
+    rebuild()
+    return true

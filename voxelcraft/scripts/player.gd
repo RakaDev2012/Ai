@@ -162,3 +162,17 @@ func _show_action(text: String) -> void:
 func _sync_status() -> void:
     var root := get_parent()
     if root.has_method("update_player_status"): root.update_player_status(health, hunger, inventory[selected], selected)
+
+func get_save_state() -> Dictionary:
+    return {"position": [position.x, position.y, position.z], "health": health, "hunger": hunger, "inventory": inventory, "selected": selected}
+
+func apply_save_state(data: Dictionary) -> void:
+    var p = data.get("position", [0, 5, 5])
+    if p is Array and p.size() >= 3: position = Vector3(float(p[0]), float(p[1]), float(p[2]))
+    health = int(data.get("health", 20))
+    hunger = int(data.get("hunger", 20))
+    var saved_inventory = data.get("inventory", [])
+    if saved_inventory is Array and not saved_inventory.is_empty(): inventory = saved_inventory
+    selected = clampi(int(data.get("selected", 0)), 0, inventory.size() - 1)
+    _refresh_item_colors()
+    _sync_status()

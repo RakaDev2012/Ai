@@ -10,13 +10,15 @@ Prototype voxel sandbox Android-ready yang **orisinal** dan tidak memakai kode, 
 - Dynamic light dari lampu yang dibawa pemain, dengan shadow opsional.
 - Hotbar/inventory HUD, crosshair, dan info performa.
 - Command console dengan sintaks orisinal `/give`, `/set`, `/tp`, `/time`, dan `/help`.
+- Save/load world JSON, autosave setiap 30 detik, restore posisi pemain, inventory, health, hunger, dan waktu dunia.
+- Crafting awal melalui `/craft glowstone` dengan resep emberwood + slate.
 - Desain hemat memori: grid 20×20, MultiMesh per jenis blok, material bersama, dan renderer Compatibility.
 
 ## Menjalankan
 
 Buka folder ini di Godot 4.3+ lalu jalankan scene utama. Keyboard: WASD, Space, E, klik kiri/kanan. Tombol angka memilih slot hotbar.
 
-Tekan `/` untuk membuka command console. Contoh: `/give glowstone`, `/set 2 4 2 moss`, `/tp 0 8 0`, atau `/time night`.
+Tekan `/` untuk membuka command console. Contoh: `/give glowstone`, `/set 2 4 2 moss`, `/tp 0 8 0`, `/time night`, `/craft glowstone`, `/save`, atau `/load`.
 
 ## Android
 

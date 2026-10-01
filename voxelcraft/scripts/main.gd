@@ -8,6 +8,8 @@ var world: VoxelWorld
 var player: CharacterBody3D
 var sun: DirectionalLight3D
 var elapsed := 0.0
+var autosave_elapsed := 0.0
+const SAVE_PATH := "user://lumen_frontier_save.json"
 
 func _ready() -> void:
     world = $World
@@ -16,6 +18,7 @@ func _ready() -> void:
     _build_hud()
     player.world = world
     player.hud = hud
+    _load_game()
 
 func _build_lighting() -> void:
     sun = DirectionalLight3D.new()
@@ -37,6 +40,10 @@ func _build_lighting() -> void:
 
 func _process(delta: float) -> void:
     elapsed += delta
+    autosave_elapsed += delta
+    if autosave_elapsed >= 30.0:
+        autosave_elapsed = 0.0
+        _save_game()
     world.advance_time(delta)
     var phase := world.time_of_day * TAU
     sun.rotation_degrees = Vector3(-35.0 + sin(phase) * 38.0, phase * 57.3 - 90.0, 0)
@@ -102,6 +109,24 @@ func _unhandled_input(event: InputEvent) -> void:
 func update_player_status(health: int, hunger: int, item: String, slot: int) -> void:
     if is_instance_valid(survival_label): survival_label.text = "HP %d/20  HUNGER %d/20  •  %s [%d]" % [health, hunger, item, slot + 1]
 
+func _save_game() -> bool:
+    var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+    if not file: return false
+    file.store_string(JSON.stringify({"world": {"time": world.time_of_day}, "player": player.get_save_state()}))
+    file.close()
+    world.save_world()
+    return true
+
+func _load_game() -> bool:
+    var loaded_world := world.load_world()
+    if not FileAccess.file_exists(SAVE_PATH): return loaded_world
+    var file := FileAccess.open(SAVE_PATH, FileAccess.READ)
+    if not file: return loaded_world
+    var parsed = JSON.parse_string(file.get_as_text())
+    file.close()
+    if parsed is Dictionary and parsed.has("player"): player.apply_save_state(parsed.player)
+    return loaded_world
+
 func _on_command_submitted(raw: String) -> void:
     command_line.visible = false
     Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -110,7 +135,7 @@ func _on_command_submitted(raw: String) -> void:
     if parts.is_empty(): return
     var result := "Command tidak dikenal. /help"
     match parts[0].to_lower():
-        "help": result = "Command: /give <block> /set <x> <y> <z> <block> /tp <x> <y> <z> /time <day|night>"
+        "help": result = "Command: /give /set /tp /time /craft glowstone /save /load"
         "give":
             if parts.size() > 1 and VoxelWorld.BLOCKS.has(parts[1]):
                 player.inventory[player.selected] = parts[1]
@@ -129,4 +154,12 @@ func _on_command_submitted(raw: String) -> void:
             if parts.size() > 1 and parts[1] == "night": world.time_of_day = 0.75
             elif parts.size() > 1 and parts[1] == "day": world.time_of_day = 0.25
             result = "Waktu diubah"
+        "craft":
+            if parts.size() > 1 and parts[1] == "glowstone" and player.inventory.has("emberwood") and player.inventory.has("slate"):
+                player.inventory[player.selected] = "glowstone"
+                player._refresh_item_colors()
+                result = "Craft berhasil: glowstone (emberwood + slate)"
+            else: result = "Resep: /craft glowstone membutuhkan emberwood + slate"
+        "save": result = "World tersimpan" if _save_game() else "Save gagal"
+        "load": result = "World dimuat" if _load_game() else "Belum ada save"
     player._show_action(result)
