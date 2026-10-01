@@ -102,13 +102,17 @@ func _make_item(color: Color, offset: Vector3) -> MeshInstance3D:
     return item
 
 func _refresh_item_colors() -> void:
-    var palette: Dictionary = {}
-    for id in VoxelWorld.BLOCKS: palette[id] = VoxelWorld.BLOCKS[id].color
     var left_id: String = inventory[selected]
     var right_id: String = inventory[(selected + 1) % inventory.size()]
-    (left_item.mesh as BoxMesh).material.albedo_color = palette[left_id]
-    (right_item.mesh as BoxMesh).material.albedo_color = palette[right_id]
+    (left_item.mesh as BoxMesh).material.albedo_color = _item_color(left_id)
+    (right_item.mesh as BoxMesh).material.albedo_color = _item_color(right_id)
     left_light.light_energy = 3.0 if left_id == "glowstone" else 1.2
+
+func _item_color(id: String) -> Color:
+    if VoxelWorld.BLOCKS.has(id): return VoxelWorld.BLOCKS[id].color
+    var kind: String = str(ContentRegistry.ITEMS.get(id, {}).get("kind", "item"))
+    var colors := {"tool": Color("#b9c4d0"), "weapon": Color("#e36f67"), "food": Color("#f0a05e"), "armor": Color("#7c9fe8"), "ammo": Color("#d7c39c"), "item": Color("#d7d7d7")}
+    return colors.get(kind, Color("#d7d7d7"))
 
 func _update_hands(delta: float) -> void:
     var bob := sin(Time.get_ticks_msec() * 0.008) * 0.018

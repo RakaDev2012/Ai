@@ -12,13 +12,14 @@ Prototype voxel sandbox Android-ready yang **orisinal** dan tidak memakai kode, 
 - Command console dengan sintaks orisinal `/give`, `/set`, `/tp`, `/time`, dan `/help`.
 - Save/load world JSON, autosave setiap 30 detik, restore posisi pemain, inventory, health, hunger, dan waktu dunia.
 - Crafting awal melalui `/craft glowstone` dengan resep emberwood + slate.
+- Content registry terpisah untuk wooden/stone/iron/diamond tools, sword, bow, armor, food, ammo, dan recipe; gunakan `/recipes` untuk melihat daftar resep.
 - Desain hemat memori: grid 20×20, MultiMesh per jenis blok, material bersama, dan renderer Compatibility.
 
 ## Menjalankan
 
 Buka folder ini di Godot 4.3+ lalu jalankan scene utama. Keyboard: WASD, Space, E, klik kiri/kanan. Tombol angka memilih slot hotbar.
 
-Tekan `/` untuk membuka command console. Command world-management mencakup `/give`, `/setblock`, `/fill`, `/clone`, `/tp`, `/spawnpoint`, `/kill`, `/clear`, `/locate`, `/time`, `/weather`, `/difficulty`, `/gamerule`, `/effect`, `/craft`, `/save`, dan `/load`.
+Tekan `/` untuk membuka command console. Command mencakup `/give`, `/setblock`, `/fill`, `/clone`, `/tp`, `/spawnpoint`, `/kill`, `/clear`, `/locate`, `/time`, `/weather`, `/difficulty`, `/gamerule`, `/effect`, `/craft`, `/recipes`, `/save`, dan `/load`.
 
 ## Android
 

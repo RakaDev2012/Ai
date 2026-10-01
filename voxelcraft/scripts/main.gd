@@ -140,11 +140,11 @@ func _on_command_submitted(raw: String) -> void:
     match parts[0].to_lower():
         "help": result = "Command: /give /setblock /fill /clone /tp /spawnpoint /kill /clear /locate /time /weather /difficulty /gamerule /effect /craft /save /load"
         "give":
-            if parts.size() > 1 and VoxelWorld.BLOCKS.has(parts[1]):
+            if parts.size() > 1 and (VoxelWorld.BLOCKS.has(parts[1]) or ContentRegistry.ITEMS.has(parts[1])):
                 player.inventory[player.selected] = parts[1]
                 player._refresh_item_colors()
                 result = "Diberi %s" % parts[1]
-            else: result = "Gunakan /give <block>. 35 block tersedia di registry."
+            else: result = "Gunakan /give <block|item>. 35 block dan content registry tersedia."
         "set":
             if parts.size() >= 5:
                 var cell := Vector3i(int(parts[1]), int(parts[2]), int(parts[3]))
@@ -198,11 +198,14 @@ func _on_command_submitted(raw: String) -> void:
         "effect":
             result = "Effect %s diterapkan selama %s detik" % [parts[1], parts[2] if parts.size() > 2 else "30"] if parts.size() > 1 else "Format: /effect <nama> <detik>"
         "craft":
-            if parts.size() > 1 and parts[1] == "glowstone" and player.inventory.has("emberwood") and player.inventory.has("slate"):
-                player.inventory[player.selected] = "glowstone"
+            var recipe := ContentRegistry.recipe(parts[1]) if parts.size() > 1 else {}
+            if not recipe.is_empty():
+                player.inventory[player.selected] = str(recipe.output)
                 player._refresh_item_colors()
-                result = "Craft berhasil: glowstone (emberwood + slate)"
-            else: result = "Resep: /craft glowstone membutuhkan emberwood + slate"
+                result = "Craft berhasil: %s" % recipe.output
+            else: result = "Recipe tidak ditemukan. Gunakan /help atau /recipes"
+        "recipes":
+            result = "Recipe: " + ", ".join(ContentRegistry.RECIPES.keys())
         "save": result = "World tersimpan" if _save_game() else "Save gagal"
         "load": result = "World dimuat" if _load_game() else "Belum ada save"
     player._show_action(result)
